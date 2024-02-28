@@ -19,7 +19,8 @@ def setup_syslogging():
     logger.addHandler(handler)
     return logger
 
-def get_mac_adr(packet: scapy.packet) -> str:
+# WOL packets will have a broadcast signal and should have multiple repittions of a MAC address (so just grab first one)
+def get_mac_adr_from_wol_packet(packet: scapy.packet) -> str:
     wol_raw = bytes(packet).hex()
     mac_adr_index = wol_raw.rfind(BROADCAST_SIGNAL)
     if mac_adr_index > 0:
@@ -27,8 +28,8 @@ def get_mac_adr(packet: scapy.packet) -> str:
         return wol_raw[mac_adr_index:mac_adr_index + BROADCAST_SIGNAL_LEN]
     return None
 
-def handle_wol_packet(packet):
-    mac_adr = get_mac_adr(packet)
+def handle_wol_packet(packet) -> None:
+    mac_adr = get_mac_adr_from_wol_packet(packet)
     if mac_adr:
         # We only care about packets that are not from the local network to relay
         if IP in packet and packet[IP].dst != BROADCAST_ADR:
