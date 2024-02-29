@@ -11,13 +11,15 @@ import os
 import logging
 import logging.handlers
 from logging import Logger
+from scapy.all import *
 from scapy.layers.inet import *
 from scapy.sendrecv import sniff
 from wakeonlan import send_magic_packet
 
 BROADCAST_SIGNAL = "ffffffffffff"
-BROADCAST_ADR = "255.255.255.255"
 BROADCAST_SIGNAL_LEN = len(BROADCAST_SIGNAL)
+IPV4_BROADCAST_ADR = "255.255.255.255"
+IPV6_MULTICAST_ADR = "ff02::1"
 WOL_PORT = 9
 
 def setup_syslogging() -> Logger:
@@ -65,7 +67,7 @@ def handle_wol_packet(packet: scapy.packet) -> None:
     """
     mac_adr = get_mac_adr_from_wol_packet(packet)
     if mac_adr:
-        if IP in packet and packet[IP].dst != BROADCAST_ADR:
+        if (IP in packet and packet[IP].dst != IPV4_BROADCAST_ADR) or (IPv6 in packet and packet[IPv6].dst != IPV6_MULTICAST_ADR):
             logger.info(f"WOL packet captured; relaying '{mac_adr}' to local interface/network.")
             send_magic_packet(mac_adr)
         else:
