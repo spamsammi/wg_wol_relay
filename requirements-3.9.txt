@@ -1,0 +1,9 @@
+altgraph==0.17.4
+importlib-metadata==7.0.1
+packaging==23.2
+pkg_resources==0.0.0
+pyinstaller==6.4.0
+pyinstaller-hooks-contrib==2024.1
+scapy==2.5.0
+wakeonlan==3.1.0
+zipp==3.17.0
