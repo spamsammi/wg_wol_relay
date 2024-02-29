@@ -16,4 +16,7 @@ run: venv
 	@eval . venv/bin/activate && python wg_wol_relay.py
 
 build: venv
-	@eval . venv/bin/activate && pyinstaller wg_wol_relay.py
+	@eval . venv/bin/activate && pyinstaller --onefile wg_wol_relay.py
+
+install: venv
+	@eval bin/install.sh
