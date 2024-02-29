@@ -17,7 +17,6 @@ from scapy.sendrecv import sniff
 from wakeonlan import send_magic_packet
 
 BROADCAST_SIGNAL = "ffffffffffff"
-BROADCAST_SIGNAL_LEN = len(BROADCAST_SIGNAL)
 IPV4_BROADCAST_ADR = "255.255.255.255"
 IPV6_MULTICAST_ADR = "ff02::1"
 WOL_PORT = 9
@@ -46,12 +45,19 @@ def get_mac_adr_from_wol_packet(packet: scapy.packet) -> str:
         str:    The target MAC address if one was found
         None:   If the boradcast signal was not found in the packet
     """
-    wol_raw = bytes(packet).hex()
-    mac_adr_index = wol_raw.rfind(BROADCAST_SIGNAL)
-    if mac_adr_index > 0:
-        mac_adr_index += BROADCAST_SIGNAL_LEN - 1
-        return wol_raw[mac_adr_index:mac_adr_index + BROADCAST_SIGNAL_LEN]
-    return None
+    try:
+        wol_raw = bytes(packet).hex()
+        mac_adr_index = wol_raw.rfind(BROADCAST_SIGNAL)
+        if mac_adr_index != -1:
+            mac_adr_index += len(BROADCAST_SIGNAL) - 1
+            mac_adr_end = mac_adr_index + len(BROADCAST_SIGNAL)
+            return wol_raw[mac_adr_index:mac_adr_end]
+        return None
+    except IndexError as e:
+        logger.error("MAC address not found after broadcast signal in packet: ", e)
+    except Exception as e:
+        logger.error("Error occurred extracting MAC address from packet: ", e)
+        return None
 
 def handle_wol_packet(packet: scapy.packet) -> None:
     """
@@ -59,7 +65,7 @@ def handle_wol_packet(packet: scapy.packet) -> None:
     from the local network.
 
     NOTE: It is highly suggested to only pick a port that is expected to receive WOL packets as this function will
-    look for the next 12 bytes after a broadcast signal to find the MAC address from a WOL packet. 
+    look for the next 12 hexadecimal characters after a broadcast signal to find the MAC address from a WOL packet. 
     A well-know port for WOL is 9.
 
     Returns:
@@ -81,4 +87,7 @@ if __name__ == "__main__":
     """
     logger = setup_syslogging()
     logger.info(f"Sniffing for WOL packets on port {WOL_PORT}...")
-    sniff(filter=f"udp and port {WOL_PORT}", prn=handle_wol_packet)
+    try:
+        sniff(filter=f"udp and port {WOL_PORT}", prn=handle_wol_packet)
+    except Exception as e:
+        logger.error("An error occured sniffing for WOL packets on the network: ", e, "Script exiting")
