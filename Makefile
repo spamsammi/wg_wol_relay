@@ -10,7 +10,10 @@ else
 endif
 
 clean:
-	@eval rm -rf venv build dist *.spec
+	@eval rm -rf build dist *.spec
+
+purge: clean
+	@eval rm -r venv
 
 run: venv
 	@eval . venv/bin/activate && python wg_wol_relay.py
