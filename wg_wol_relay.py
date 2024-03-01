@@ -55,6 +55,7 @@ def get_mac_adr_from_wol_packet(packet: scapy.packet) -> str:
         return None
     except IndexError as e:
         logger.error("MAC address not found after broadcast signal in packet: ", e)
+        return None
     except Exception as e:
         logger.error("Error occurred extracting MAC address from packet: ", e)
         return None
@@ -90,4 +91,4 @@ if __name__ == "__main__":
     try:
         sniff(filter=f"udp and port {WOL_PORT}", prn=handle_wol_packet)
     except Exception as e:
-        logger.error("An error occured sniffing for WOL packets on the network: ", e, "Script exiting")
+        logger.error("An error occured sniffing for WOL packets on the network: ", e)
