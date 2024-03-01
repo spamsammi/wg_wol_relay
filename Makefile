@@ -20,3 +20,6 @@ build: venv
 
 install: venv
 	@eval bin/install.sh
+
+uninstall:
+	@eval bin/install.sh -u
