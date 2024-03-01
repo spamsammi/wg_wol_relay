@@ -21,7 +21,7 @@ run: venv
 build: venv
 	@eval . venv/bin/activate && pyinstaller --onefile wg_wol_relay.py
 
-install: venv
+install: build
 	@eval bin/install.sh
 
 uninstall:
