@@ -43,7 +43,7 @@ def get_mac_adr_from_wol_packet(packet: scapy.packet) -> str:
     
     Returns:
         str:    The target MAC address if one was found
-        None:   If the boradcast signal was not found in the packet
+        None:   If the boradcast signal was not found in the packet or an error occured getting the MAC address
     """
     try:
         wol_raw = bytes(packet).hex()
