@@ -39,7 +39,7 @@ The executable should now be running and will start on a reboot.
 1. Navigate to this repository on the VPN server
 2. Run `sudo make uninstall`
 
-This will stop the service, disable and remove it, and uninstall the executable from the ssytem.
+This will stop the service, disable and remove it, and uninstall the executable from the sytem.
 
 ## Testing/Usage
 
