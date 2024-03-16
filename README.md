@@ -11,14 +11,12 @@ Typically building the exectuable is done on the VPN server itself, but one can 
     `build-essential python3 pip`
 
     * `python3.9` is prefered; versions newer than this will potentially still work
-2. **Traffic from the WireGuard server must be able to forward traffic to the local lan/wan**. 
-    * A configuration similar to below is needed in your WireGuard server's configuration. This example is allowing all traffic on the WireGuard interface (wg0) to forward traffic to an ethernet interface (eth0) and sets the appropriate rules in UFW to allow this traffic through the firewall (if UFW is used):
+2. Traffic from the WireGuard server must be able to accept traffic from the WireGuard network interface. 
+    * A configuration similar to below is needed in your WireGuard server's configuration:
 
         ```
-        PostUp = ufw route allow in on wg0 out on eth0
-        PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -I POSTROUTING -o eth0 -j MASQUERADE
-        PreDown = ufw route delete allow in on wg0 out on eth0
-        PreDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
+        PostUp = iptables -A FORWARD -i wg0 -j ACCEPT
+        PreDown = iptables -D FORWARD -i wg0 -j ACCEPT
         ```
 3. If using `sudo make install` below, the VPN server needs to use `systemd` for the installation script to execute correctly
 4. A device on the local network that is setup to wake from WOL packets
@@ -44,17 +42,23 @@ This will stop the service, disable and remove it, and uninstall the executable 
 ## Testing/Usage
 
 1. Using a WireGuard client, connect to the WireGuard server
-2. Send a WOL packet with to the sleeping computer on the home/local network
+2. Send a WOL packet that has the WireGuard server as the destination address and the MAC address of the sleeping computer on the local network
 3. Confirm that the sleeping computer is now on and can be reached through the VPN connection 
 
 ## Debugging
 
 To debug the service, check the system log on the VPN server for the service `wg_wol_relay`.
 
+## WOL Packet Structure
+
+Without going into low level detail, the WOL packet just needs the destination IP address of the WireGuard server and the MAC address of the sleeping computer. There are several tools available to do this from the commandline, phone applications, etc.
+
 # Use Case
 
-This script was specifically made to solve the issue of having to create a custom webserver API on or sshing into the VPN server to send a WOL packet directly onto the local network. With either of these approaches, the MAC address is needed for the sleeping computer and it would likely need to be coded somewhere on the VPN server itself.
+This script was specifically made to solve the issue of having to create a custom webserver API on or sshing into the VPN server to send a WOL packet directly onto the local network. With either of these approaches, the MAC address is needed for the sleeping computer and it would likely need to be coded somewhere on the VPN server itself. This script also solves having to potentially modify router settings to allow broadcasting from a WOL packet directed at the VPN sever.
 
 This approach simplifies the process by caputring/extracting the MAC address from the WOL packet sent from the WireGuard client to the server and then sending that MAC address in a WOL packet to the local network (like the approaches above) without the need for custom code.
 
-**A specific use case that this solves is waking a PC from a WireGuard client in order to stream a remote desktop session via a streaming application (like Moonlight)**
+## Specific Use Case
+
+This directly solves waking a PC from a WireGuard client in order to stream a remote desktop session via the streaming application Moonlight.
