@@ -16,7 +16,7 @@ from scapy.layers.inet import *
 from scapy.sendrecv import sniff
 from wakeonlan import send_magic_packet
 
-BROADCAST_SIGNAL = "ffffffffffff"
+BROADCAST_SIGNAL = b'\xff' * 6
 IPV4_BROADCAST_ADR = "255.255.255.255"
 IPV6_MULTICAST_ADR = "ff02::1"
 WOL_PORT = 9
@@ -46,13 +46,10 @@ def get_mac_adr_from_wol_packet(packet: scapy.packet) -> str:
         None:   If the boradcast signal was not found in the packet or an error occured getting the MAC address
     """
     try:
-        wol_raw = bytes(packet).hex()
-        mac_adr_index = wol_raw.rfind(BROADCAST_SIGNAL)
-        if mac_adr_index != -1:
-            mac_adr_index += len(BROADCAST_SIGNAL) - 1
-            mac_adr_end = mac_adr_index + len(BROADCAST_SIGNAL)
-            return wol_raw[mac_adr_index:mac_adr_end]
-        return None
+        if packet.haslayer(Raw):
+            raw_data = packet[Raw].load
+            if raw_data.startswith(BROADCAST_SIGNAL):
+                return raw_data[6:12].hex(':')
     except IndexError as e:
         logger.error("MAC address not found after broadcast signal in packet: ", e)
         return None
