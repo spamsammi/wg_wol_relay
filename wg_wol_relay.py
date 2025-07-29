@@ -16,10 +16,13 @@ from scapy.layers.inet import *
 from scapy.sendrecv import sniff
 from wakeonlan import send_magic_packet
 
+# Environment variables
+WWR_WOL_PORT = int(os.getenv("WWR_WOL_PORT", 9))
+WWR_SNIFF_INTERFACE = os.getenv("WWR_SNIFF_INTERFACE", "wg0")
+
 BROADCAST_SIGNAL = b'\xff' * 6
 IPV4_BROADCAST_ADR = "255.255.255.255"
 IPV6_MULTICAST_ADR = "ff02::1"
-WOL_PORT = 9
 
 def setup_syslogging() -> Logger:
     """
@@ -84,8 +87,12 @@ if __name__ == "__main__":
     Sets up logging for syslog and begins sniffing for WOL packets using scapy
     """
     logger = setup_syslogging()
-    logger.info(f"Sniffing for WOL packets on port {WOL_PORT}...")
+    logger.info(f"Sniffing for WOL packets on port {WWR_WOL_PORT} on interface {WWR_SNIFF_INTERFACE}...")
     try:
-        sniff(filter=f"udp and port {WOL_PORT}", prn=handle_wol_packet)
+        sniff(
+            iface=WWR_SNIFF_INTERFACE,
+            filter=f"udp and port {WWR_WOL_PORT}",
+            prn=handle_wol_packet,
+        )
     except Exception as e:
         logger.error("An error occured sniffing for WOL packets on the network: ", e)
